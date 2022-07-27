@@ -1,0 +1,111 @@
+GET http://localhost:8080/api/question
+Authorization: Basic gerard.menvussaa@etu.univ-orleans.fr sonMotDePasse
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 403, "Un étudiant ne peut pas accéder à cette ressource");
+});
+%}
+
+
+###
+
+
+GET http://localhost:8080/api/question
+Authorization: Basic yohan.boichut@univ-orleans.fr monMotDePasse
+Accept: application/json
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Un professeur doit pouvoir accéder à cette ressource");
+  });
+
+%}
+
+
+###
+
+
+
+POST http://localhost:8080/api/utilisateur/1/question
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic gerard.menvussaa@etu.univ-orleans.fr sonMotDePasse
+
+question=Quelle est la couleur du cheval blanc d'Henry 4 ?
+
+
+> {%
+client.global.set("uriquestion", response.headers.valueOf("location"));
+client.global.set("idQuestion",response.body)
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 201, "L'étudiant aurait dû pouvoir créer cette question");
+});
+%}
+
+
+###
+GET http://localhost:8080{{uriquestion}}
+Authorization: Basic gerard.menvussaa@etu.univ-orleans.fr sonMotDePasse
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "L'étudiant aurait dû pouvoir récupérer cette question");
+});
+%}
+
+###
+
+PATCH http://localhost:8080/api/question/{{idQuestion}}
+Authorization: Basic yohan.boichut@univ-orleans.fr monMotDePasse
+Content-Type: application/x-www-form-urlencoded
+
+reponse=Normalement, blanc...
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 204, "Le professeur aurait dû pouvoir répondre à la question");
+});
+%}
+
+###
+
+
+
+GET http://localhost:8080/api/utilisateur/1/question
+Authorization: Basic gerard.menvussaa@etu.univ-orleans.fr sonMotDePasse
+Content-Type: application/x-www-form-urlencoded
+
+filtre=avecreponse
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "L'étudiant aurait dû ses questions");
+});
+%}
+
+###
+
+POST http://localhost:8080/api/utilisateur
+Content-Type: application/x-www-form-urlencoded
+
+pseudo=mathieu.chapelle@univ-orleans.fr&password=sonMotDePasse
+
+> {%
+client.global.set("uriUtilisateur", response.headers.valueOf("Location"));
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 201, "L'étudiant aurait dû pouvoir créer cette question");
+});
+%}
+
+
+###
+
+GET {{uriUtilisateur}}
+Authorization: Basic mathieu.chapelle@univ-orleans.fr sonMotDePasse
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "L'étudiant aurait dû pouvoir créer cette question");
+});
+%}
+
